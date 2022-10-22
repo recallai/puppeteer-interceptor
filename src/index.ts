@@ -5,8 +5,6 @@ import DEBUG from 'debug';
 import Protocol from 'devtools-protocol';
 import { Page } from 'puppeteer/lib/cjs/puppeteer/common/Page';
 import { CDPSession } from 'puppeteer/lib/cjs/puppeteer/common/Connection';
-import pick from 'lodash.pick';
-import { encode } from 'punycode';
 
 const debug = DEBUG('puppeteer-interceptor');
 
@@ -29,7 +27,7 @@ export namespace Interceptor {
   }
 
   export interface Options {
-    ignoreRedirects: boolean;
+    ignoreRedirects?: boolean;
   }
 
   export interface ResponseOptions {
@@ -59,17 +57,19 @@ export class InterceptionHandler {
   page: Page;
   patterns: Protocol.Fetch.RequestPattern[] = [];
   eventHandlers: Interceptor.EventHandlers = {};
-  options: Interceptor.Options = { ignoreRedirects: false };
+  options: Interceptor.Options = {};
   client?: CDPSession;
   disabled = false;
   constructor(
     page: Page,
     patterns: Protocol.Fetch.RequestPattern[] = [],
     eventHandlers: Interceptor.EventHandlers = {},
+    options: Interceptor.Options = {},
   ) {
     this.page = page;
     this.patterns = patterns;
     this.eventHandlers = eventHandlers;
+    this.options = options;
   }
   disable() {
     this.disabled = true;
@@ -174,10 +174,19 @@ export async function intercept(
   page: Page,
   patterns: Protocol.Fetch.RequestPattern[] = [],
   eventHandlers: Interceptor.EventHandlers = {},
-  options: Interceptor.Options = { ignoreRedirects: false },
+  options: Interceptor.Options = {},
 ) {
   debug(`Registering interceptors for ${patterns.length} patterns`);
   const interceptionHandler = new InterceptionHandler(page, patterns, eventHandlers, options);
   await interceptionHandler.initialize();
   return interceptionHandler;
+}
+
+function pick(object: any, keys: any) {
+  return keys.reduce((obj: any, key: any) => {
+     if (object && object.hasOwnProperty(key)) {
+        obj[key] = object[key];
+     }
+     return obj;
+   }, {});
 }
