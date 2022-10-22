@@ -28,6 +28,10 @@ export namespace Interceptor {
     onInterception?: (event: OnInterceptionEvent, control: ControlCallbacks) => Promise<void> | void;
   }
 
+  export interface Options {
+    ignoreRedirects: boolean;
+  }
+
   export interface ResponseOptions {
     responseHeaders?: Protocol.Fetch.HeaderEntry[];
     binaryResponseHeaders?: string;
@@ -55,6 +59,7 @@ export class InterceptionHandler {
   page: Page;
   patterns: Protocol.Fetch.RequestPattern[] = [];
   eventHandlers: Interceptor.EventHandlers = {};
+  options: Interceptor.Options = { ignoreRedirects: false };
   client?: CDPSession;
   disabled = false;
   constructor(
@@ -131,6 +136,10 @@ export class InterceptionHandler {
           debug(
             `Warning: onResponseReceived handler passed but ${requestId} intercepted at Request stage. Handler can not be called.`,
           );
+        } else if (this.options.ignoreRedirects && event.responseStatusCode >= 300 && event.responseStatusCode < 400) {
+          debug(
+            `Warning: onResponseReceived handler passed but ${requestId} received redirect response. Handler can not be called.`,
+          );
         } else {
           const responseCdp = (await client.send('Fetch.getResponseBody', {
             requestId,
@@ -165,9 +174,10 @@ export async function intercept(
   page: Page,
   patterns: Protocol.Fetch.RequestPattern[] = [],
   eventHandlers: Interceptor.EventHandlers = {},
+  options: Interceptor.Options = { ignoreRedirects: false },
 ) {
   debug(`Registering interceptors for ${patterns.length} patterns`);
-  const interceptionHandler = new InterceptionHandler(page, patterns, eventHandlers);
+  const interceptionHandler = new InterceptionHandler(page, patterns, eventHandlers, options);
   await interceptionHandler.initialize();
   return interceptionHandler;
 }
