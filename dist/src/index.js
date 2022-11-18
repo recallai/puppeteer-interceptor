@@ -39,7 +39,7 @@ class InterceptionHandler {
                 await client.send('Fetch.continueRequest', { requestId });
                 return;
             }
-            debug(`Request ${event.request.url} (${requestId}) paused.`);
+            console.log(`INFO: Request ${event.request.url} (${requestId}) paused.`);
             if (this.eventHandlers.onInterception) {
                 let errorReason = 'Aborted';
                 let shouldContinue = true;
@@ -101,14 +101,19 @@ class InterceptionHandler {
                 }
             }
             if (newResponse) {
-                debug(`Fulfilling request ${requestId} with response returned from onResponseReceived`);
-                await client.send('Fetch.fulfillRequest', {
-                    requestId,
-                    responseCode: newResponse.statusCode,
-                    responseHeaders: newResponse.headers,
-                    body: newResponse.base64Body ? newResponse.base64Body : btoa_1.default(newResponse.body),
-                    responsePhrase: newResponse.statusMessage,
-                });
+                console.log(`INFO: Fulfilling request ${requestId} with response returned from onResponseReceived`);
+                try {
+                    await client.send('Fetch.fulfillRequest', {
+                        requestId,
+                        responseCode: newResponse.statusCode,
+                        responseHeaders: newResponse.headers,
+                        body: newResponse.base64Body ? newResponse.base64Body : btoa_1.default(newResponse.body),
+                        responsePhrase: newResponse.statusMessage,
+                    });
+                }
+                catch (err) {
+                    console.log(`INFO: Error in fulfilling request ${requestId}`, err);
+                }
             }
             else {
                 await client.send('Fetch.continueRequest', { requestId });
