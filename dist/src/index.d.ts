@@ -16,6 +16,7 @@ export declare namespace Interceptor {
     }
     interface Options {
         ignoreRedirects?: boolean;
+        ignore4xxResponses?: boolean;
     }
     interface ResponseOptions {
         responseHeaders?: Protocol.Fetch.HeaderEntry[];

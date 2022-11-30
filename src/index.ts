@@ -28,6 +28,7 @@ export namespace Interceptor {
 
   export interface Options {
     ignoreRedirects?: boolean;
+    ignore4xxResponses?: boolean;
   }
 
   export interface ResponseOptions {
@@ -140,6 +141,14 @@ export class InterceptionHandler {
           debug(
             `Warning: onResponseReceived handler passed but ${requestId} received redirect response. Handler can not be called.`,
           );
+        } else if (
+          this.options.ignore4xxResponses &&
+          event.responseStatusCode >= 400 &&
+          event.responseStatusCode < 500
+        ) {
+          debug(
+            `Warning: onResponseReceived handler passed but ${requestId} received client error ${event.responseStatusCode} response. Handler can not be called.`,
+          );
         } else {
           const responseCdp = (await client.send('Fetch.getResponseBody', {
             requestId,
@@ -188,9 +197,9 @@ export async function intercept(
 
 function pick(object: any, keys: any) {
   return keys.reduce((obj: any, key: any) => {
-     if (object && object.hasOwnProperty(key)) {
-        obj[key] = object[key];
-     }
-     return obj;
-   }, {});
+    if (object && object.hasOwnProperty(key)) {
+      obj[key] = object[key];
+    }
+    return obj;
+  }, {});
 }

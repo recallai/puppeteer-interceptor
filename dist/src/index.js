@@ -87,6 +87,11 @@ class InterceptionHandler {
                 else if (this.options.ignoreRedirects && event.responseStatusCode >= 300 && event.responseStatusCode < 400) {
                     debug(`Warning: onResponseReceived handler passed but ${requestId} received redirect response. Handler can not be called.`);
                 }
+                else if (this.options.ignore4xxResponses &&
+                    event.responseStatusCode >= 400 &&
+                    event.responseStatusCode < 500) {
+                    debug(`Warning: onResponseReceived handler passed but ${requestId} received client error ${event.responseStatusCode} response. Handler can not be called.`);
+                }
                 else {
                     const responseCdp = (await client.send('Fetch.getResponseBody', {
                         requestId,
