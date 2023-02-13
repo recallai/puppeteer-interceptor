@@ -150,16 +150,24 @@ export class InterceptionHandler {
             `Warning: onResponseReceived handler passed but ${requestId} received client error ${event.responseStatusCode} response. Handler can not be called.`,
           );
         } else {
-          const responseCdp = (await client.send('Fetch.getResponseBody', {
-            requestId,
-          })) as Protocol.Fetch.GetResponseBodyResponse;
-          const response: Interceptor.InterceptedResponse = {
-            body: responseCdp.base64Encoded ? atob(responseCdp.body) : responseCdp.body,
-            headers: event.responseHeaders,
-            errorReason: event.responseErrorReason,
-            statusCode: event.responseStatusCode,
-          };
-          newResponse = await this.eventHandlers.onResponseReceived({ response, request });
+          let responseCdp = null;
+          try {
+            responseCdp = (await client.send('Fetch.getResponseBody', {
+              requestId,
+            })) as Protocol.Fetch.GetResponseBodyResponse | null;
+          } catch (err) {
+            console.log(`INFO: Error in getting response body for ${requestId}`, err);
+          }
+
+          if (responseCdp) {
+            const response: Interceptor.InterceptedResponse = {
+              body: responseCdp.base64Encoded ? atob(responseCdp.body) : responseCdp.body,
+              headers: event.responseHeaders,
+              errorReason: event.responseErrorReason,
+              statusCode: event.responseStatusCode,
+            };
+            newResponse = await this.eventHandlers.onResponseReceived({ response, request });
+          }
         }
       }
 
