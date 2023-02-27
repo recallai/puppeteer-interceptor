@@ -182,10 +182,14 @@ export class InterceptionHandler {
             responsePhrase: newResponse.statusMessage,
           });
         } catch (err) {
-          console.log(`INFO: Error in fulfilling request ${requestId}`, err);
+          console.log(`INFO: Error in Fetch.fulfillRequest for ${requestId}`, err);
         }
       } else {
-        await client.send('Fetch.continueRequest', { requestId });
+        try {
+          await client.send('Fetch.continueRequest', { requestId });
+        } catch (err) {
+          console.log(`INFO: Error in Fetch.continueRequest for ${requestId}`, err);
+        }
       }
     });
   }
