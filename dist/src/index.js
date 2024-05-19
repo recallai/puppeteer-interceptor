@@ -39,7 +39,7 @@ class InterceptionHandler {
                 await client.send('Fetch.continueRequest', { requestId });
                 return;
             }
-            console.log(`INFO: Request ${event.request.url} (${requestId}) paused.`);
+            console.log(`DEBUG: Request ${event.request.url} (${requestId}) paused.`);
             if (this.eventHandlers.onInterception) {
                 let errorReason = 'Aborted';
                 let shouldContinue = true;
@@ -114,7 +114,7 @@ class InterceptionHandler {
                 }
             }
             if (newResponse) {
-                console.log(`INFO: Fulfilling request ${requestId} with response returned from onResponseReceived`);
+                console.log(`DEBUG: Fulfilling request ${requestId} with response returned from onResponseReceived`);
                 try {
                     await client.send('Fetch.fulfillRequest', {
                         requestId,
